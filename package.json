@@ -1,0 +1,23 @@
+{
+  "name": "mc-paper-docker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./build/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && node ./build/index.js",
+    "start": "node ./build/index.js",
+    "clean": "rm -r ./build"
+  },
+  "author": "Kacper Darowski",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.4.9",
+    "@typescript-eslint/eslint-plugin": "^6.3.0",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
+}
