@@ -21,6 +21,8 @@ async function main() {
     }
   );
 
+  // TODO: allow user to specify RAM amount
+  // TODO: research "corrupt jar" error on abrupt server close
   // TODO: watch over player count -> shutdown server when noone online
   // TODO: start mock server -> start real server when someone joins
 }
