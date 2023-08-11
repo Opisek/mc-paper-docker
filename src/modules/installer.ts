@@ -1,4 +1,4 @@
-import { createWriteStream, readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
+import { createWriteStream, existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 import * as paths from "../paths.js";
 import { exit } from "process";
 import fetch from "node-fetch";
@@ -30,6 +30,14 @@ function getInstalledVersion(): string {
 function getInstalledBuild(): number {
   try {
     return Number.parseInt(readFileSync(paths.buildFile).toString());
+  } catch (_) {
+    return null;
+  }
+}
+
+function getInstalledBinaries(): string {
+  try {
+    return readFileSync(paths.binariesFile).toString();
   } catch (_) {
     return null;
   }
@@ -71,22 +79,25 @@ async function downloadFile(url: string, fileName: string) {
   });
 }
 
-export default async function installServer() {
+export default async function installServer(): Promise<string> {
   // Check Version
   let requestedVersion = process.env.VERSION || "latest";
   const currentVersion = getInstalledVersion();
   const availableVersions = await getPaperVersions();
-  let isInstalled = requestedVersion == currentVersion;
+  let versionMatches = requestedVersion == currentVersion;
+
+  const currentBinaries = getInstalledBinaries();
+  const isInstalled = currentBinaries && existsSync(join(paths.minecraft, currentBinaries));
   
   if (!availableVersions) {
-    if (isInstalled) return;
+    if (versionMatches && isInstalled) return currentBinaries;
     console.error("Could not contact PaperMC website.");
     exit(1);
   }
 
   if (requestedVersion == "latest") {
     requestedVersion = availableVersions[availableVersions.length - 1];
-    isInstalled = requestedVersion == currentVersion;
+    versionMatches = requestedVersion == currentVersion;
   } else if (!availableVersions.includes(requestedVersion)) {
     console.error(`There doesn't exist a PaperMC server for version "${requestedVersion}".`);
     exit(1);
@@ -97,17 +108,17 @@ export default async function installServer() {
   const availableBuilds = await getPaperBuilds(requestedVersion, process.env.CHANNEL == "experimental");
 
   if (!availableBuilds) {
-    if (isInstalled) return;
+    if (versionMatches && isInstalled) return currentBinaries;
     console.error("Could not contact PaperMC website.");
     exit(1);
   }
 
   const latestBuild = Math.max(...(availableBuilds.map((x) => x.build)));
 
-  if (isInstalled) {
+  if (versionMatches && isInstalled) {
     if (currentBuild >= latestBuild) {
       console.log("Latest build already installed.");
-      return;
+      return currentBinaries;
     }
 
     console.log("New build found.");
@@ -124,4 +135,7 @@ export default async function installServer() {
 
   writeFileSync(paths.versionFile, requestedVersion);
   writeFileSync(paths.buildFile, latestBuild.toString());
+  writeFileSync(paths.binariesFile, fileName);
+
+  return fileName;
 }

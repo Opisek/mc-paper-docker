@@ -8,6 +8,7 @@ export const minecraft = join(rootDir, "minecraft");
 export const data = join(rootDir, "data");
 export const versionFile = join(data, ".version");
 export const buildFile = join(data, ".build");
+export const binariesFile = join(data, ".binaries");
 
 export const createDirectories = async () => {
   mkdirSync(minecraft, { recursive: true });
