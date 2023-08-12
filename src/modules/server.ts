@@ -1,30 +1,39 @@
-import { spawn } from "child_process";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
 import { minecraft } from "../paths.js";
+import { Configuration } from "./environmental.js";
 
-export default function runServer(
-  file: string,
-  stdoutCallback: (chunk: string) => void,
-  stderrCallback: (chunk: string) => void,
-  closeCallback: (chunk: string) => void
-) {
-  const ramXmx = process.env.XMX || "4G";
-  const ramXms = process.env.XMS || "4G";
+const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\n$/;
+
+export enum StartupError {
+  Corrupted,
+  Other,
+}
+
+export async function runServer(config: Configuration, file: string): Promise<ChildProcessWithoutNullStreams> {
   const serverInstance = spawn(
     "java",
     [
-      `-Xmx${ramXmx}`,
-      `-Xms${ramXms}`,
+      `-Xmx${config.xmx}`,
+      `-Xms${config.xms}`,
       "-jar",
       join(minecraft, file),
       "nogui",
     ],
     {
-      "cwd": minecraft,
+      cwd: minecraft,
     }
   );
 
-  serverInstance.stdout.on("data", stdoutCallback);
-  serverInstance.stderr.on("data", stderrCallback);
-  serverInstance.on("close", closeCallback);
+  serverInstance.stdout.on("data", (message: Buffer) => process.stdout.write(message.toString()));
+  serverInstance.stderr.on("data", (message: Buffer) => process.stderr.write(message.toString()));
+
+  return new Promise((resolve, reject) => {
+    serverInstance.stdout.on("data", (message: Buffer) => {
+      if (doneRegex.test(message.toString())) resolve(serverInstance);
+    });
+    serverInstance.on("close", () => {
+      reject(StartupError.Other);
+    });
+  });
 }

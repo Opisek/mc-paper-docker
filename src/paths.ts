@@ -10,7 +10,7 @@ export const versionFile = join(data, ".version");
 export const buildFile = join(data, ".build");
 export const binariesFile = join(data, ".binaries");
 
-export const createDirectories = async () => {
+export const createDirectories = () => {
   mkdirSync(minecraft, { recursive: true });
   mkdirSync(data, { recursive: true });
 };

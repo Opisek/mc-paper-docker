@@ -79,7 +79,13 @@ async function downloadFile(url: string, fileName: string) {
   });
 }
 
-export default async function installServer(): Promise<string> {
+export const clearBinariesData = () => {
+  unlinkSync(paths.versionFile);
+  unlinkSync(paths.buildFile);
+  unlinkSync(paths.binariesFile);
+};
+
+export async function installServer(): Promise<string> {
   // Check Version
   let requestedVersion = process.env.VERSION || "latest";
   const currentVersion = getInstalledVersion();
