@@ -1,6 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
-import { minecraft } from "../paths.js";
+import { minecraft } from "./paths.js";
 import { Configuration } from "./environmental.js";
 
 const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\n$/;

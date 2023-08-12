@@ -1,5 +1,5 @@
 import { createWriteStream, existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
-import * as paths from "../paths.js";
+import * as paths from "./paths.js";
 import { exit } from "process";
 import fetch from "node-fetch";
 import { join } from "path";

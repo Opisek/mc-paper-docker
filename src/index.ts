@@ -2,7 +2,7 @@ import { exit } from "process";
 import acceptEula from "./modules/eula.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 import { runServer, StartupError } from "./modules/server.js";
-import { createDirectories } from "./paths.js";
+import { createDirectories } from "./modules/paths.js";
 import watchServer from "./modules/watcher.js";
 import { Configuration, getConfiguration } from "./modules/environmental.js";
 
