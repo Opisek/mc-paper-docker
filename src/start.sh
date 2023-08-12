@@ -1,0 +1,1 @@
+cd ../minecraft && java -Xmx8G -Xms8G -jar ../minecraft/paper-1.20.1-117.jar nogui

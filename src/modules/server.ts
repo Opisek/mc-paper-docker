@@ -8,11 +8,13 @@ export default function runServer(
   stderrCallback: (chunk: string) => void,
   closeCallback: (chunk: string) => void
 ) {
+  const ramXmx = process.env.XMX || "4G";
+  const ramXms = process.env.XMS || "4G";
   const serverInstance = spawn(
     "java",
     [
-      "-Xmx8G",
-      "-Xms8G",
+      `-Xmx${ramXmx}`,
+      `-Xms${ramXms}`,
       "-jar",
       join(minecraft, file),
       "nogui",
