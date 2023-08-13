@@ -1,10 +1,13 @@
 import { join } from "path";
 import { readFile } from "fs/promises";
-import { parseFile } from "key-value-file";
 
 import { minecraft } from "./paths.js";
 
 import { Environmental, IpBanEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
+import { createInterface } from "readline";
+import { createReadStream } from "fs";
+
+const serverPropertiesRegex = /^([^=]+)=(.*)$/;
 
 export function getEnvironmental(): Environmental {
   return {
@@ -17,8 +20,25 @@ export function getEnvironmental(): Environmental {
   };
 }
 
+async function parseServerPropertiesFile(path: string): Promise<Map<string, string>> {
+  const res = new Map<string, string>();
+
+  const readInterface = createInterface({
+    input: createReadStream(path),
+  });
+
+  for await (const line of readInterface) {
+    if (line.startsWith("#")) continue;
+    const match = line.match(serverPropertiesRegex);
+    if (!match) continue;
+    res.set(match[1], match[2]);
+  }
+
+  return res;
+}
+
 export async function getServerProperties(): Promise<ServerProperties> {
-  const parsedFile = await parseFile(join(minecraft, "server.properties"));
+  const parsedFile = await parseServerPropertiesFile(join(minecraft, "server.properties"));
 
   return {
     motd: parsedFile.get("motd") || "A Minecraft Server",

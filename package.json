@@ -17,7 +17,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "key-value-file": "^1.0.10",
+    "minecraft-protocol": "^1.44.0",
     "node-fetch": "^3.3.2"
   },
   "type": "module"
