@@ -1,23 +1,11 @@
-import { createWriteStream, existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
-import * as paths from "./paths.js";
+import { join } from "path";
 import { exit } from "process";
 import fetch from "node-fetch";
-import { join } from "path";
+import { createWriteStream, existsSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "fs";
 
-type PaperApiVersionsResponse = {
-  versions: string[]
-}
-type PaperApiBuildsResponse = {
-  builds: {
-    build: number,
-    channel: string,
-    downloads: {
-      application: {
-        name: string
-      }
-    }
-  }[]
-}
+import * as paths from "./paths.js";
+
+import { BuildsResponse, VersionsResponse } from "../typings/paperApi.js";
 
 function getInstalledVersion(): string {
   try {
@@ -45,7 +33,7 @@ function getInstalledBinaries(): string {
 
 async function getPaperVersions() {
   try {
-    const response = await (await fetch("https://api.papermc.io/v2/projects/paper")).json() as PaperApiVersionsResponse;
+    const response = await (await fetch("https://api.papermc.io/v2/projects/paper")).json() as VersionsResponse;
     return response.versions;
   } catch (error) {
     return null;
@@ -54,7 +42,7 @@ async function getPaperVersions() {
 
 async function getPaperBuilds(version: string, experimental: boolean) {
   try {
-    const response = await (await fetch(`https://api.papermc.io/v2/projects/paper/versions/${version}/builds`)).json() as PaperApiBuildsResponse;
+    const response = await (await fetch(`https://api.papermc.io/v2/projects/paper/versions/${version}/builds`)).json() as BuildsResponse;
     return response.builds.filter((x) => x.channel == "default" || experimental);
   } catch (error) {
     return null;

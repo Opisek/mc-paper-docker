@@ -1,6 +1,6 @@
 import { mkdirSync } from "fs";
-import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { resolve, join, dirname } from "path";
 
 export const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 

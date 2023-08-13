@@ -1,13 +1,6 @@
-export type Configuration = {
-  eula: boolean,
-  version: string,
-  channel: string,
-  xms: string,
-  xmx: string,
-  gracePeriod: number,
-}
+import { Environmental } from "../typings/config.js";
 
-export function getConfiguration(): Configuration {
+export function getEnvironmental(): Environmental {
   return {
     eula: process.env.EULA === "true",
     version: process.env.VERSION || "latest",

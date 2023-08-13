@@ -1,16 +1,14 @@
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { join } from "path";
+import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+
 import { minecraft } from "./paths.js";
-import { Configuration } from "./environmental.js";
+
+import { Environmental } from "../typings/config.js";
+import { StartupError } from "../typings/server.js";
 
 const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\n$/;
 
-export enum StartupError {
-  Corrupted,
-  Other,
-}
-
-export async function runServer(config: Configuration, file: string): Promise<ChildProcessWithoutNullStreams> {
+export async function runServer(config: Environmental, file: string): Promise<ChildProcessWithoutNullStreams> {
   const serverInstance = spawn(
     "java",
     [

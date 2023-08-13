@@ -1,18 +1,22 @@
 import { exit } from "process";
-import acceptEula from "./modules/eula.js";
-import { installServer, clearBinariesData } from "./modules/installer.js";
-import { runServer, StartupError } from "./modules/server.js";
-import { createDirectories } from "./modules/paths.js";
-import watchServer from "./modules/watcher.js";
-import { Configuration, getConfiguration } from "./modules/environmental.js";
 
-async function main(config: Configuration) {
+import acceptEula from "./modules/eula.js";
+import { runServer } from "./modules/server.js";
+import watchServer from "./modules/watcher.js";
+import { installServer, clearBinariesData } from "./modules/installer.js";
+
+import { StartupError } from "./typings/server.js";
+import { Environmental } from "./typings/config.js";
+import { createDirectories } from "./modules/paths.js";
+import { getEnvironmental } from "./modules/config.js";
+
+async function main(environmental: Environmental) {
   const serverBinaries = await installServer();
 
   let serverInstance;
   try {
     console.log("Starting minecraft server.");
-    serverInstance = await runServer(config, serverBinaries);
+    serverInstance = await runServer(environmental, serverBinaries);
   } catch (e) {
     switch (e as StartupError) {
       case StartupError.Corrupted:
@@ -26,7 +30,7 @@ async function main(config: Configuration) {
     }
   }
 
-  await watchServer(config, serverInstance);
+  await watchServer(environmental, serverInstance);
   console.log("The server has closed.");
 
   // TODO: start mock server and close once sometimes joins
@@ -35,8 +39,8 @@ async function main(config: Configuration) {
 }
 
 (async () => {
-  const config = getConfiguration();
+  const environmental = getEnvironmental();
   createDirectories();
-  await acceptEula(config.eula);
-  while (true) await main(config);
+  await acceptEula(environmental.eula);
+  while (true) await main(environmental);
 })();

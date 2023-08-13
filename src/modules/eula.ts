@@ -1,5 +1,6 @@
-import { writeFile } from "fs/promises";
 import { join } from "path";
+import { writeFile } from "fs/promises";
+
 import { minecraft } from "./paths.js";
 
 export default async function acceptEula(accept: boolean) {

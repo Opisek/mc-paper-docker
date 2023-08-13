@@ -1,10 +1,11 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
-import { Configuration } from "./environmental.js";
+
+import { Environmental } from "../typings/config.js";
 
 const playerCountRegex = /\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
 export default function watchServer(
-  config: Configuration,
+  environmental: Environmental,
   serverInstance: ChildProcessWithoutNullStreams
 ): Promise<void> {
   return new Promise((resolve) => {
@@ -20,7 +21,7 @@ export default function watchServer(
 
       const playerCount = Number.parseInt(playerCountMatch[1]);
       if (playerCount != 0) lastOnline = Date.now();
-      else if ((Date.now() - lastOnline) / 1000 >= config.gracePeriod) {
+      else if ((Date.now() - lastOnline) / 1000 >= environmental.gracePeriod) {
         console.log("Shutting the server down due to inactivity.");
         serverInstance.stdin.write("stop\n");
       }
