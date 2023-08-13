@@ -4,7 +4,11 @@ import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { minecraft } from "./paths.js";
 
 import { Environmental } from "../typings/config.js";
-import { StartupError } from "../typings/server.js";
+
+export enum StartupError {
+  Corrupted,
+  Other,
+}
 
 const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\n$/;
 
@@ -25,6 +29,7 @@ export async function runServer(config: Environmental, file: string): Promise<Ch
 
   serverInstance.stdout.on("data", (message: Buffer) => process.stdout.write(message.toString()));
   serverInstance.stderr.on("data", (message: Buffer) => process.stderr.write(message.toString()));
+  process.stdin.on("data", (message) => serverInstance.stdin.write(message));
 
   return new Promise((resolve, reject) => {
     serverInstance.stdout.on("data", (message: Buffer) => {
