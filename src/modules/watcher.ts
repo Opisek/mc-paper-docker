@@ -12,6 +12,7 @@ export default function watchServer(
     let lastOnline = Date.now();
 
     setInterval(() => {
+      // TODO: consider using minecraft-protocol server ping instead
       serverInstance.stdin.write("list\n");
     }, 10000);
 

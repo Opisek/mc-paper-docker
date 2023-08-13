@@ -10,13 +10,14 @@ export type Environmental = {
 }
 
 export type ServerProperties = {
-  motd: string,
-  maxPlayers: number,
   enableStatus: boolean,
+  hideOnlinePlayers: boolean,
+  maxPlayers: number,
+  motd: string,
+  onlineMode: boolean,
   serverIp: string,
   serverPort: number,
-  hideOnlinePlayers: boolean,
-  whiteList: boolean,
+  whitelist: boolean,
 }
 
 export type WhitelistEntry = {
@@ -24,19 +25,24 @@ export type WhitelistEntry = {
   name: string
 }
 
+export type OperatorEntry = {
+  uuid: UUID,
+  name: string
+}
+
 export type PlayerBanEntry = {
   uuid: UUID,
   name: string,
-  created: Date,
+  created: string,
   source: string,
-  expires: Date,
+  expires: string,
   reason: string,
 }
 
 export type IpBanEntry = {
   ip: string,
-  created: Date,
+  created: string,
   source: string,
-  expires: Date,
+  expires: string,
   reason: string,
 }

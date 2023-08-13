@@ -73,7 +73,7 @@ export const clearBinariesData = () => {
   unlinkSync(paths.binariesFile);
 };
 
-export async function installServer(): Promise<string> {
+export async function installServer(): Promise<[string, string]> {
   // Check Version
   let requestedVersion = process.env.VERSION || "latest";
   const currentVersion = getInstalledVersion();
@@ -84,7 +84,7 @@ export async function installServer(): Promise<string> {
   const isInstalled = currentBinaries && existsSync(join(paths.minecraft, currentBinaries));
   
   if (!availableVersions) {
-    if (versionMatches && isInstalled) return currentBinaries;
+    if (versionMatches && isInstalled) return [ currentBinaries, requestedVersion ];
     console.error("Could not contact PaperMC website.");
     exit(1);
   }
@@ -102,7 +102,7 @@ export async function installServer(): Promise<string> {
   const availableBuilds = await getPaperBuilds(requestedVersion, process.env.CHANNEL == "experimental");
 
   if (!availableBuilds) {
-    if (versionMatches && isInstalled) return currentBinaries;
+    if (versionMatches && isInstalled) return [ currentBinaries, requestedVersion ];
     console.error("Could not contact PaperMC website.");
     exit(1);
   }
@@ -112,7 +112,7 @@ export async function installServer(): Promise<string> {
   if (versionMatches && isInstalled) {
     if (currentBuild >= latestBuild) {
       console.log("Latest build already installed.");
-      return currentBinaries;
+      return [ currentBinaries, requestedVersion ];
     }
 
     console.log("New build found.");
@@ -131,5 +131,5 @@ export async function installServer(): Promise<string> {
   writeFileSync(paths.buildFile, latestBuild.toString());
   writeFileSync(paths.binariesFile, fileName);
 
-  return fileName;
+  return [ fileName, requestedVersion ];
 }

@@ -1,17 +1,17 @@
 import { exit } from "process";
 
 import acceptEula from "./modules/eula.js";
-import { runServer } from "./modules/server.js";
+import runMockServer from "./modules/mock.js";
 import watchServer from "./modules/watcher.js";
+import { getEnvironmental } from "./modules/config.js";
+import { createDirectories } from "./modules/paths.js";
+import { StartupError, runServer } from "./modules/server.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
-import { StartupError } from "./typings/server.js";
 import { Environmental } from "./typings/config.js";
-import { createDirectories } from "./modules/paths.js";
-import { getEnvironmental } from "./modules/config.js";
 
 async function main(environmental: Environmental) {
-  const serverBinaries = await installServer();
+  const [ serverBinaries, serverVersion ] = await installServer();
 
   let serverInstance;
   try {
@@ -33,8 +33,10 @@ async function main(environmental: Environmental) {
   await watchServer(environmental, serverInstance);
   console.log("The server has closed.");
 
-  // TODO: start mock server and close once sometimes joins
-  //       note that it must use the port specified in minecraft/server.properties
+  console.log("Starting mock server");
+  await runMockServer(serverVersion);
+  console.log("The mock server has closed.");
+
   // TODO: add graceful shutdown
 }
 

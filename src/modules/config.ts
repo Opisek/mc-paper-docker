@@ -1,11 +1,12 @@
 import { join } from "path";
+import { UUID } from "crypto";
+import { createReadStream } from "fs";
 import { readFile } from "fs/promises";
+import { createInterface } from "readline";
 
 import { minecraft } from "./paths.js";
 
-import { Environmental, IpBanEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
-import { createInterface } from "readline";
-import { createReadStream } from "fs";
+import { Environmental, IpBanEntry, OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 
 const serverPropertiesRegex = /^([^=]+)=(.*)$/;
 
@@ -41,27 +42,37 @@ export async function getServerProperties(): Promise<ServerProperties> {
   const parsedFile = await parseServerPropertiesFile(join(minecraft, "server.properties"));
 
   return {
-    motd: parsedFile.get("motd") || "A Minecraft Server",
-    maxPlayers: Number.parseInt(parsedFile.get("max-players")) || 20,
     enableStatus: parsedFile.get("enable-status") === "true" || true,
-    serverIp: parsedFile.get("server-ip")|| "127.0.0.1",
-    serverPort: Number.parseInt(parsedFile.get("server-port")) || 25565,
     hideOnlinePlayers: parsedFile.get("hide-online-players") === "true" || false,
-    whiteList: parsedFile.get("white-list") === "true" || false,
+    maxPlayers: Number.parseInt(parsedFile.get("max-players")) || 20,
+    motd: parsedFile.get("motd") || "A Minecraft Server",
+    onlineMode: parsedFile.get("online-mode") === "true" || true,
+    serverIp: parsedFile.get("server-ip") || undefined,
+    serverPort: Number.parseInt(parsedFile.get("server-port")) || 25565,
+    whitelist: parsedFile.get("white-list") === "true" || false,
   };
 }
 
-export async function getWhitelist(): Promise<WhitelistEntry[]> {
+export async function getWhitelist(): Promise<Map<UUID, WhitelistEntry>> {
   const fileBody = await readFile(join(minecraft, "whitelist.json"));
-  return JSON.parse(fileBody.toString());
+  const list: WhitelistEntry[] = JSON.parse(fileBody.toString());
+  return new Map(list.map((x) => [ x.uuid, x ]));
 }
 
-export async function getPlayerBans(): Promise<PlayerBanEntry[]> {
+export async function getOperators(): Promise<Map<UUID, OperatorEntry>> {
+  const fileBody = await readFile(join(minecraft, "ops.json"));
+  const list: OperatorEntry[] = JSON.parse(fileBody.toString());
+  return new Map(list.map((x) => [ x.uuid, x ]));
+}
+
+export async function getPlayerBans(): Promise<Map<UUID, PlayerBanEntry>> {
   const fileBody = await readFile(join(minecraft, "banned-players.json"));
-  return JSON.parse(fileBody.toString());
+  const list: PlayerBanEntry[] = JSON.parse(fileBody.toString());
+  return new Map(list.map((x) => [ x.uuid, x ]));
 }
 
-export async function getIpBans(): Promise<IpBanEntry[]> {
+export async function getIpBans(): Promise<Map<string, IpBanEntry>> {
   const fileBody = await readFile(join(minecraft, "banned-ips.json"));
-  return JSON.parse(fileBody.toString());
+  const list: IpBanEntry[] = JSON.parse(fileBody.toString());
+  return new Map(list.map((x) => [ x.ip, x ]));
 }
