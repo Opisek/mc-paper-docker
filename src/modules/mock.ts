@@ -1,7 +1,15 @@
+import { join } from "path";
 import { UUID } from "crypto";
+import { existsSync, readFileSync } from "fs";
 import { Client, createServer } from "minecraft-protocol";
 
+import { minecraft } from "./paths.js";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
+
+function encodeIcon(path: string): string {
+  if (!existsSync(path)) return "";
+  return "data:image/png;base64," + readFileSync(path).toString("base64");
+}
 
 export default async function runMockServer(version: string) {
   const serverProperties = await getServerProperties();
@@ -11,14 +19,16 @@ export default async function runMockServer(version: string) {
   //const ipBans = await getIpBans();
 
   const mockServerOptions = {
-    port: serverProperties.serverPort,
+    favicon: encodeIcon(join(minecraft, "server-icon.png")),
     host: serverProperties.serverIp,
-    "online-mode": serverProperties.onlineMode,
     motd: serverProperties.motd,
+    "online-mode": serverProperties.onlineMode,
+    port: serverProperties.serverPort,
     maxPlayers: serverProperties.maxPlayers,
     version: version,
-  }; // TODO: add favicon
+  };
 
+  // TODO: check if we can respect "enableStatus"
   const mockServer = createServer(mockServerOptions);
 
   return new Promise<void>((resolve) => {
