@@ -43,8 +43,9 @@ export default async function watchServer(
     };
 
     setInterval(() => {
-      if (serverProperties.hideOnlinePlayers) queryPlayerCountByConsole();
-      else queryPlayerCountByPing();
+      !serverProperties.enableStatus || serverProperties.hideOnlinePlayers
+      ? queryPlayerCountByConsole
+      : queryPlayerCountByPing
     }, 10000);
 
     serverInstance.stdout.on("data", (message: Buffer) => {
