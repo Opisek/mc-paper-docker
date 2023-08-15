@@ -43,11 +43,11 @@ export default async function watchServer(
       }); 
     };
 
-    setInterval(() => {
+    setInterval(
       !serverProperties.enableStatus || serverProperties.hideOnlinePlayers
         ? queryPlayerCountByConsole
-        : queryPlayerCountByPing;
-    }, 10000);
+        : queryPlayerCountByPing
+      , 10000);
 
     serverInstance.stdout.on("data", (message: Buffer) => {
       const playerCountMatch = message.toString().match(playerCountRegex);
