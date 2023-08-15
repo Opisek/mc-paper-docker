@@ -29,7 +29,7 @@ The purpose of this project is to provide a simple way to run a minecraft with t
         - minecraft-data:/app/data
       network_mode: host
       environment:
-        - EULA=false      # change this to true if you agree to minecraft eula f
+        - EULA=false      # change this to true if you agree to minecraft eula https://www.minecraft.net/en-us/eula
         - VERSION=latest  # minecraft version or "latest"
         - CHANNEL=default # change this to experimental for experimental paper builds
         - GRACE=180       # amount of time in seconds of nobody being online before stopping the server
