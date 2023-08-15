@@ -7,7 +7,7 @@ services:
       - /srv/minecraft:/app/minecraft
     network_mode: host
     environment:
-      - EULA=true
+      - EULA=false
       - GRACE=180
       - XMS=8G
       - XMX=8G
