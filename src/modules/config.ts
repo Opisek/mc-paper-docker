@@ -1,6 +1,6 @@
 import { join } from "path";
 import { UUID } from "crypto";
-import { createReadStream } from "fs";
+import { copyFileSync, createReadStream } from "fs";
 import { readFile } from "fs/promises";
 import { createInterface } from "readline";
 
@@ -41,15 +41,17 @@ async function parseServerPropertiesFile(path: string): Promise<Map<string, stri
 export async function getServerProperties(): Promise<ServerProperties> {
   const parsedFile = await parseServerPropertiesFile(join(minecraft, "server.properties"));
 
+  console.log(parsedFile.get("online-mode"));
+
   return {
-    enableStatus: parsedFile.get("enable-status") === "true" || true,
-    hideOnlinePlayers: parsedFile.get("hide-online-players") === "true" || false,
+    enableStatus: parsedFile.get("enable-status") === "true",
+    hideOnlinePlayers: parsedFile.get("hide-online-players") === "true",
     maxPlayers: Number.parseInt(parsedFile.get("max-players")) || 20,
     motd: parsedFile.get("motd") || "A Minecraft Server",
-    onlineMode: parsedFile.get("online-mode") === "true" || true,
+    onlineMode: parsedFile.get("online-mode") === "true",
     serverIp: parsedFile.get("server-ip") || undefined,
     serverPort: Number.parseInt(parsedFile.get("server-port")) || 25565,
-    whitelist: parsedFile.get("white-list") === "true" || false,
+    whitelist: parsedFile.get("white-list") === "true",
   };
 }
 
