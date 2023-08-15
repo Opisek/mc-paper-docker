@@ -37,7 +37,6 @@ export async function handleMockServer(mockServer: Server) {
 
   return new Promise<void>((resolve) => {
     mockServer.on("login", (client: Client) => {
-      // TODO: explore how whitelist and bans work on servers not in online mode
       const clientUUID = client.uuid as UUID;
 
       // check whitelist
