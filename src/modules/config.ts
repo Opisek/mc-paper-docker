@@ -41,8 +41,6 @@ async function parseServerPropertiesFile(path: string): Promise<Map<string, stri
 export async function getServerProperties(): Promise<ServerProperties> {
   const parsedFile = await parseServerPropertiesFile(join(minecraft, "server.properties"));
 
-  console.log(parsedFile.get("online-mode"));
-
   return {
     enableStatus: parsedFile.get("enable-status") === "true",
     hideOnlinePlayers: parsedFile.get("hide-online-players") === "true",
