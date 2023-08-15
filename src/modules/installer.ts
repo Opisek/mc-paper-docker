@@ -90,6 +90,9 @@ export async function installServer(): Promise<[string, string]> {
   }
 
   if (requestedVersion == "latest") {
+    // TODO: latest version should not necessarily be the newest one,
+    //       in case it is still in experimental phase, but the
+    //       selected channel is "default"
     requestedVersion = availableVersions[availableVersions.length - 1];
     versionMatches = requestedVersion == currentVersion;
   } else if (!availableVersions.includes(requestedVersion)) {
