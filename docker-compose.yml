@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  minecraft:
+    container_name: minecraft
+    image: opisek/mc-paper-docker:latest
+    volumes:
+      - /srv/minecraft:/app/minecraft
+    network_mode: host
+    environment:
+      - EULA=true
+      - GRACE=180
+      - XMS=8G
+      - XMX=8G
+      - VERSION=latest
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: Dockerfile
