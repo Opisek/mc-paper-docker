@@ -35,12 +35,13 @@ async function main(environmental: Environmental) {
   }
 
   await watchServer(environmental, serverInstance);
-  console.log("The server has closed.");
   serverInstance = null;
+  console.log("The server has closed.");
 
   console.log("Starting mock server");
   mockInstance = await runMockServer(serverVersion);
   await handleMockServer(mockInstance);
+  mockInstance = null;
   console.log("The mock server has closed.");
 }
 
