@@ -5,6 +5,7 @@ services:
     image: opisek/mc-paper-docker:latest
     volumes:
       - /srv/minecraft:/app/minecraft
+      - minecraft-data:/app/data
     network_mode: host
     environment:
       - EULA=false
@@ -12,8 +13,12 @@ services:
       - XMS=8G
       - XMX=8G
       - VERSION=latest
+      - UID=9999
+      - GID=9999
     stdin_open: true
     tty: true
     build:
       context: .
       dockerfile: Dockerfile
+volumes:
+  minecraft-data:

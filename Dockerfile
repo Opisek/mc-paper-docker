@@ -17,13 +17,14 @@ FROM node:18-alpine as runtime
 
 WORKDIR /app
 
-VOLUME [ "/data" ]
-
 RUN apk add --no-cache openjdk17-jre-headless
+RUN apk add --no-cache su-exec
 
 COPY --from=build /tmp/node_modules_prod ./node_modules
 COPY --from=build /app/build ./build
 RUN ls
 COPY package.json .
 
-ENTRYPOINT [ "/usr/local/bin/npm", "run", "start" ]
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+ENTRYPOINT [ "sh", "entrypoint.sh" ]
