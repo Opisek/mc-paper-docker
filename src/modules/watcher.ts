@@ -1,9 +1,10 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
+import { NewPingResult, OldPingResult } from "minecraft-protocol";
+import * as minecraftProtocol from "minecraft-protocol"; // https://github.com/PrismarineJS/node-minecraft-protocol/issues/1253
+
+import { getServerProperties } from "./config.js";
 
 import { Environmental } from "../typings/config.js";
-import { getServerProperties } from "./config.js";
-import { ping, NewPingResult, OldPingResult } from "minecraft-protocol";
-import * as minecraftProtocol from "minecraft-protocol"; // https://github.com/PrismarineJS/node-minecraft-protocol/issues/1253
 
 const playerCountRegex = /\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
@@ -44,8 +45,8 @@ export default async function watchServer(
 
     setInterval(() => {
       !serverProperties.enableStatus || serverProperties.hideOnlinePlayers
-      ? queryPlayerCountByConsole
-      : queryPlayerCountByPing
+        ? queryPlayerCountByConsole
+        : queryPlayerCountByPing;
     }, 10000);
 
     serverInstance.stdout.on("data", (message: Buffer) => {
