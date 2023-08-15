@@ -1,7 +1,7 @@
 import { join } from "path";
 import { UUID } from "crypto";
 import { existsSync, readFileSync } from "fs";
-import { Client, createServer } from "minecraft-protocol";
+import { Client, Server, createServer } from "minecraft-protocol";
 
 import { minecraft } from "./paths.js";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
@@ -11,12 +11,8 @@ function encodeIcon(path: string): string {
   return "data:image/png;base64," + readFileSync(path).toString("base64");
 }
 
-export default async function runMockServer(version: string) {
+export async function runMockServer(version: string) {
   const serverProperties = await getServerProperties();
-  const whitelist = await getWhitelist();
-  const operators = await getOperators();
-  const playerBans = await getPlayerBans();
-  //const ipBans = await getIpBans();
 
   const mockServerOptions = {
     favicon: encodeIcon(join(minecraft, "server-icon.png")),
@@ -29,7 +25,15 @@ export default async function runMockServer(version: string) {
   };
 
   // TODO: check if we can respect "enableStatus"
-  const mockServer = createServer(mockServerOptions);
+  return createServer(mockServerOptions);
+}
+
+export async function handleMockServer(mockServer: Server) {
+  const serverProperties = await getServerProperties();
+  const whitelist = await getWhitelist();
+  const operators = await getOperators();
+  const playerBans = await getPlayerBans();
+  //const ipBans = await getIpBans();
 
   return new Promise<void>((resolve) => {
     mockServer.on("login", (client: Client) => {
@@ -51,7 +55,7 @@ export default async function runMockServer(version: string) {
         }
       }
 
-      // TODO: handle ipBans as well
+      // TODO: check if there's a way we could handle ipBans as well
 
       // kill the mock
       console.log(`Player ${client.username} attempted to join.`);

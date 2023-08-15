@@ -1,19 +1,23 @@
 import { exit } from "process";
+import { Server } from "minecraft-protocol";
+import { ChildProcessWithoutNullStreams } from "child_process";
 
 import acceptEula from "./modules/eula.js";
-import runMockServer from "./modules/mock.js";
 import watchServer from "./modules/watcher.js";
 import { getEnvironmental } from "./modules/config.js";
 import { createDirectories } from "./modules/paths.js";
 import { StartupError, runServer } from "./modules/server.js";
+import { handleMockServer, runMockServer } from "./modules/mock.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
 import { Environmental } from "./typings/config.js";
 
+let serverInstance: ChildProcessWithoutNullStreams;
+let mockInstance: Server;
+
 async function main(environmental: Environmental) {
   const [ serverBinaries, serverVersion ] = await installServer();
 
-  let serverInstance;
   try {
     console.log("Starting minecraft server.");
     serverInstance = await runServer(environmental, serverBinaries);
@@ -32,13 +36,27 @@ async function main(environmental: Environmental) {
 
   await watchServer(environmental, serverInstance);
   console.log("The server has closed.");
+  serverInstance = null;
 
   console.log("Starting mock server");
-  await runMockServer(serverVersion);
+  mockInstance = await runMockServer(serverVersion);
+  await handleMockServer(mockInstance);
   console.log("The mock server has closed.");
-
-  // TODO: add graceful shutdown
 }
+
+async function shutdown() {
+  console.log("Shutting down...");
+  if (serverInstance) {
+    serverInstance.stdin.write("stop\n");
+    await new Promise((resolve) => serverInstance.on("close", resolve));
+  } else if (mockInstance) {
+    mockInstance.close();
+  }
+  exit(0);
+}
+
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 (async () => {
   const environmental = getEnvironmental();
