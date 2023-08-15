@@ -108,3 +108,5 @@ The docker container runs a Node.js script that
 
 - In case the latest version only has experimantal builds, but the `default` channel has
   been selected, then the installer will fail to download any binaries.
+
+- Listeners are not properly cleared
