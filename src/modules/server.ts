@@ -10,7 +10,7 @@ export enum StartupError {
   Other,
 }
 
-const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\n$/;
+const doneRegex = /^\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\r?\n$/;
 
 export async function runServer(config: Environmental, file: string): Promise<ChildProcessWithoutNullStreams> {
   const serverInstance = spawn(
