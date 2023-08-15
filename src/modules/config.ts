@@ -1,6 +1,6 @@
 import { join } from "path";
 import { UUID } from "crypto";
-import { copyFileSync, createReadStream } from "fs";
+import { createReadStream } from "fs";
 import { readFile } from "fs/promises";
 import { createInterface } from "readline";
 
