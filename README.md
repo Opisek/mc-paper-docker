@@ -110,3 +110,5 @@ The docker container runs a Node.js script that
   been selected, then the installer will fail to download any binaries.
 
 - Listeners are not properly cleared
+
+- Alternate ways of waking the server back up should be explored like a console command or trying to access a webpage (e.g. to start the server and be able to view Dynmap without starting a Minecraft client)
