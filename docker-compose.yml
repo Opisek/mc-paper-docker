@@ -4,7 +4,7 @@ services:
     container_name: minecraft
     image: opisek/mc-paper-docker:latest
     volumes:
-      - /srv/minecraft:/app/minecraft
+      - /srv/minecraft:/app/minecraft # change /srv/minecraft to the directory you want to store minecraft files in
       - minecraft-data:/app/data
     network_mode: host
     environment:
