@@ -43,7 +43,7 @@ export default async function watchServer(
       }); 
     };
 
-    setInterval(
+    const interval = setInterval(
       !serverProperties.enableStatus || serverProperties.hideOnlinePlayers
         ? queryPlayerCountByConsole
         : queryPlayerCountByPing
@@ -58,6 +58,9 @@ export default async function watchServer(
       updateOnline(playerCount);
     });
 
-    serverInstance.on("close", resolve);
+    serverInstance.on("close", () => {
+      clearInterval(interval);
+      resolve();
+    });
   });
 }
