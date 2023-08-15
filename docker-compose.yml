@@ -16,6 +16,7 @@ services:
       - XMX=8G          # maximum amount of ram to allocate to the server
       - UID=9999        # minecraft files user id
       - GID=9999        # minecraft files group id
+    restart: unless-stopped
     stdin_open: true
     tty: true
     build:
