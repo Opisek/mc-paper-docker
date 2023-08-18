@@ -36,6 +36,12 @@ export async function handleMockServer(mockServer: Server) {
   //const ipBans = await getIpBans();
 
   return new Promise<void>((resolve) => {
+    const stopServer = () => {
+      mockServer.close();
+      process.stdin.removeAllListeners();
+      resolve();
+    };
+    
     mockServer.on("login", (client: Client) => {
       const clientUUID = client.uuid as UUID;
 
@@ -59,8 +65,12 @@ export async function handleMockServer(mockServer: Server) {
       // kill the mock
       console.log(`Player ${client.username} attempted to join.`);
       client.end("The server will start shortly. Please join again in a few seconds.");
-      mockServer.close();
-      resolve();
+      stopServer();
+    });
+
+    process.stdin.on("data", (message) => {
+      if (message.toString().trim() !== "start") return;
+      stopServer();
     });
   });
 }

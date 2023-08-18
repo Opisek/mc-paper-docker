@@ -60,6 +60,7 @@ export default async function watchServer(
 
     serverInstance.on("close", () => {
       clearInterval(interval);
+      process.stdin.removeAllListeners();
       resolve();
     });
   });
