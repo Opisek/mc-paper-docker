@@ -28,8 +28,17 @@ export default async function watchServer(
       }
     };
 
-    const queryPlayerCountByConsole = function () {
+    const queryPlayerCountByConsole = async function () {
+      const responsePromise = new Promise<number>((resolve) => {
+        serverInstance.stdout.on("data", function callback (message: Buffer) {
+          const playerCountMatch = message.toString().match(playerCountRegex);
+          if (!playerCountMatch) return;
+          serverInstance.stdout.removeListener("data", callback);
+          resolve(Number.parseInt(playerCountMatch[1]));
+        });
+      });
       serverInstance.stdin.write("list\n");
+      updateOnline(await responsePromise);
     };
 
     const queryPlayerCountByPing = function () {
@@ -48,15 +57,6 @@ export default async function watchServer(
         ? queryPlayerCountByConsole
         : queryPlayerCountByPing
       , 10000);
-
-    serverInstance.stdout.on("data", (message: Buffer) => {
-      const playerCountMatch = message.toString().match(playerCountRegex);
-      if (!playerCountMatch) return;
-
-      const playerCount = Number.parseInt(playerCountMatch[1]);
-
-      updateOnline(playerCount);
-    });
 
     serverInstance.on("close", () => {
       clearInterval(interval);

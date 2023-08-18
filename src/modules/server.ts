@@ -32,10 +32,19 @@ export async function runServer(config: Environmental, file: string): Promise<Ch
   process.stdin.on("data", (message) => serverInstance.stdin.write(message));
 
   return new Promise((resolve, reject) => {
-    serverInstance.stdout.on("data", (message: Buffer) => {
-      if (doneRegex.test(message.toString())) resolve(serverInstance);
+    serverInstance.stdout.on("data", function callback (message: Buffer) {
+      if (!doneRegex.test(message.toString())) return;
+
+      serverInstance.stdout.removeListener("data", callback);
+      serverInstance.removeAllListeners("close");
+
+      resolve(serverInstance);
     });
     serverInstance.on("close", () => {
+      serverInstance.stdout.removeAllListeners();
+      serverInstance.stderr.removeAllListeners();
+      serverInstance.removeAllListeners();
+
       reject(StartupError.Other);
     });
   });
