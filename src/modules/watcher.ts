@@ -6,7 +6,7 @@ import { getServerProperties } from "./config.js";
 
 import { Environmental } from "../typings/config.js";
 
-const playerCountRegex = /\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
+const playerCountRegex = /.*(^|\n)\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
 export default async function watchServer(
   environmental: Environmental,
