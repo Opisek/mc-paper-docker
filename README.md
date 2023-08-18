@@ -109,6 +109,4 @@ The docker container runs a Node.js script that
 - In case the latest version only has experimantal builds, but the `default` channel has
   been selected, then the installer will fail to download any binaries.
 
-- Alternate ways of waking the server back up should be explored like a console command or trying to access a webpage (e.g. to start the server and be able to view Dynmap without starting a Minecraft client)
-
 - There might be a very small chance that the stdout buffers don't include the full line, which would cause the employed regexes to fail.
