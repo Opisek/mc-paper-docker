@@ -29,7 +29,7 @@ The purpose of this project is to provide a simple way to run a minecraft with t
         - minecraft-data:/app/data
       network_mode: host
       environment:
-        - EULA=false      # change this to true if you agree to minecraft eula f
+        - EULA=false      # change this to true if you agree to minecraft eula https://www.minecraft.net/en-us/eula
         - VERSION=latest  # minecraft version or "latest"
         - CHANNEL=default # change this to experimental for experimental paper builds
         - GRACE=180       # amount of time in seconds of nobody being online before stopping the server
@@ -108,3 +108,7 @@ The docker container runs a Node.js script that
 
 - In case the latest version only has experimantal builds, but the `default` channel has
   been selected, then the installer will fail to download any binaries.
+
+- Listeners are not properly cleared
+
+- Alternate ways of waking the server back up should be explored like a console command or trying to access a webpage (e.g. to start the server and be able to view Dynmap without starting a Minecraft client)
