@@ -21,4 +21,4 @@ chmod -R 770 ./data
 
 # Start server 
 echo "Starting up..."
-su-exec $USER_ID:$GROUP_ID npm run start
+su-exec docker:docker npm run start
