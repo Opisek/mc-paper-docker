@@ -1,9 +1,10 @@
 import { join } from "path";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
+import { ChildProcessWithoutNullStreams, exec } from "child_process";
 
 import { minecraft } from "./paths.js";
 
 import { Environmental } from "../typings/config.js";
+import { writeFileSync } from "fs";
 
 export enum StartupError {
   Corrupted,
@@ -13,15 +14,13 @@ export enum StartupError {
 const doneRegex = /.*(^|\n)\[[^\]]+\]: Done \([^)]+\)! For help, type "help"\r?\n.*/;
 
 export async function runServer(config: Environmental, file: string): Promise<ChildProcessWithoutNullStreams> {
-  const serverInstance = spawn(
-    "java",
-    [
-      `-Xmx${config.xmx}`,
-      `-Xms${config.xms}`,
-      "-jar",
-      join(minecraft, file),
-      "nogui",
-    ],
+  writeFileSync(
+    join(minecraft, "startup.sh"),
+    `#!/bin/sh\njava -Xmx${config.xmx} -Xms${config.xms} -jar ${join(minecraft, file)} nogui`
+  );
+
+  const serverInstance = exec(
+    "sh startup.sh",
     {
       cwd: minecraft,
     }
