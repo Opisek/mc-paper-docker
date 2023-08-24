@@ -21,5 +21,4 @@ chmod -R 770 ./data
 
 # Start server 
 echo "Starting up..."
-exec su-exec $USER_ID:$GROUP_ID npm run start
-
+su-exec $USER_ID:$GROUP_ID npm run start
