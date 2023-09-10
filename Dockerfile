@@ -22,7 +22,6 @@ RUN apk add --no-cache su-exec
 
 COPY --from=build /tmp/node_modules_prod ./node_modules
 COPY --from=build /app/build ./build
-RUN ls
 COPY package.json .
 
 COPY entrypoint.sh .
