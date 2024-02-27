@@ -9,6 +9,9 @@
     "start": "node ./build/index.js",
     "clean": "rm -r ./build"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "author": "Kacper Darowski",
   "license": "ISC",
   "devDependencies": {

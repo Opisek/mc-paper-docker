@@ -1,5 +1,5 @@
 # install dependencies and compile typescript
-FROM node:18-bullseye as build
+FROM node:20-bullseye as build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY src .
 RUN npm run build
 
 # run the runtime
-FROM node:18-bullseye as runtime
+FROM node:20-bullseye as runtime
 
 WORKDIR /app
 

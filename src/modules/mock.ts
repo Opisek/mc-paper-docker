@@ -42,7 +42,7 @@ export async function handleMockServer(mockServer: Server) {
       resolve();
     };
     
-    mockServer.on("connection", (client: Client) => {
+    mockServer.on("login", (client: Client) => {
       const clientUUID = client.uuid as UUID;
 
       // check whitelist
