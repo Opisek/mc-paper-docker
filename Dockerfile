@@ -1,5 +1,5 @@
 # install dependencies and compile typescript
-FROM node:20-bookworm as build
+FROM node:20.10-bookworm as build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ COPY src .
 RUN npm run build
 
 # run the runtime
-FROM node:20-bullseye as runtime
+FROM node:20.10-bookworm as runtime
 
 WORKDIR /app
 
