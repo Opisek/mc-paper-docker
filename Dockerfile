@@ -1,5 +1,5 @@
 # install dependencies and compile typescript
-FROM node:18-alpine as build
+FROM node:20-bullseye as build
 
 WORKDIR /app
 
@@ -13,12 +13,14 @@ COPY src .
 RUN npm run build
 
 # run the runtime
-FROM node:18-alpine as runtime
+FROM node:20-bullseye as runtime
 
 WORKDIR /app
 
-RUN apk add --no-cache openjdk17-jre-headless
-RUN apk add --no-cache su-exec
+RUN apt-get update
+RUN apt-get install -y ca-certificates-java
+RUN apt-get install -y openjdk-17-jre-headless
+RUN apt-get install -y gosu
 
 COPY --from=build /tmp/node_modules_prod ./node_modules
 COPY --from=build /app/build ./build

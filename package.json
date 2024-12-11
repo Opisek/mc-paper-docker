@@ -9,6 +9,9 @@
     "start": "node ./build/index.js",
     "clean": "rm -r ./build"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "author": "Kacper Darowski",
   "license": "ISC",
   "devDependencies": {
@@ -17,7 +20,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "minecraft-protocol": "^1.44.0",
+    "minecraft-protocol": "^1.47.0",
     "node-fetch": "^3.3.2"
   },
   "type": "module"

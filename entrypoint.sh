@@ -6,8 +6,8 @@ if ! id docker >/dev/null 2>&1; then
   USER_ID=${UID:-9999}
   GROUP_ID=${GID:-9999}
   echo "Using user:group $USER_ID:$GROUP_ID"
-  addgroup --g $GROUP_ID docker
-  adduser docker -u $USER_ID --ingroup docker --shell /bin/sh --disabled-password --gecos ""
+  addgroup --gid $GROUP_ID docker
+  adduser docker --uid $USER_ID --ingroup docker --shell /bin/sh --disabled-password --gecos ""
   mkdir -p minecraft
   mkdir -p data
 fi
@@ -21,4 +21,4 @@ chmod -R 770 ./data
 
 # Start server 
 echo "Starting up..."
-su-exec docker:docker npm run start
+exec gosu docker:docker npm run start
