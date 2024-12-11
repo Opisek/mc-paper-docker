@@ -49,6 +49,10 @@ async function getPaperBuilds(version: string, experimental: boolean) {
   }
 }
 
+async function findMatchingLatestBuild(experimental: boolean) {
+
+}
+
 function getPaperDownloadUrl(version: string, build: number, fileName: string) {
   return `https://api.papermc.io/v2/projects/paper/versions/${version}/builds/${build}/downloads/${fileName}`;
 }
@@ -76,6 +80,7 @@ export const clearBinariesData = () => {
 export async function installServer(): Promise<[string, string]> {
   // Check Version
   let requestedVersion = process.env.VERSION || "latest";
+  const wantLatest = requestedVersion === "latest";
   const currentVersion = getInstalledVersion();
   const availableVersions = await getPaperVersions();
   let versionMatches = requestedVersion == currentVersion;
@@ -89,25 +94,37 @@ export async function installServer(): Promise<[string, string]> {
     exit(1);
   }
 
-  if (requestedVersion == "latest") {
-    // TODO: latest version should not necessarily be the newest one,
-    //       in case it is still in experimental phase, but the
-    //       selected channel is "default"
-    requestedVersion = availableVersions[availableVersions.length - 1];
-    versionMatches = requestedVersion == currentVersion;
-  } else if (!availableVersions.includes(requestedVersion)) {
-    console.error(`There doesn't exist a PaperMC server for version "${requestedVersion}".`);
-    exit(1);
-  }
-
-  // Check Build
   const currentBuild = getInstalledBuild();
-  const availableBuilds = await getPaperBuilds(requestedVersion, process.env.CHANNEL == "experimental");
+  let availableBuilds;
 
-  if (!availableBuilds) {
-    if (versionMatches && isInstalled) return [ currentBinaries, requestedVersion ];
-    console.error("Could not contact PaperMC website.");
-    exit(1);
+  while (true) {
+    if (wantLatest) {
+      requestedVersion = availableVersions.pop()
+      versionMatches = requestedVersion == currentVersion;
+    } else if (!availableVersions.includes(requestedVersion)) {
+      console.error(`There doesn't exist a PaperMC server for version "${requestedVersion}".`);
+      exit(1);
+    }
+
+    // Check Build
+    availableBuilds = await getPaperBuilds(requestedVersion, process.env.CHANNEL == "experimental");
+
+    if (!availableBuilds) {
+      if (versionMatches && isInstalled) return [ currentBinaries, requestedVersion ];
+      console.error("Could not contact PaperMC website.");
+      exit(1);
+    }
+
+    if (availableBuilds.length === 0) {
+      console.error(`There are no builds for version ${requestedVersion} on channel ${process.env.CHANNEL || "default"} yet.`);
+      if (wantLatest) {
+        continue; // In case only experimental builds are available for the latest version, but default channel is selected, go back one version.
+      } else {
+        exit(1);
+      }
+    }
+
+    break;
   }
 
   const latestBuild = Math.max(...(availableBuilds.map((x) => x.build)));
