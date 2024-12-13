@@ -20,7 +20,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "minecraft-protocol": "^1.47.0",
     "node-fetch": "^3.3.2"
   },
   "type": "module"

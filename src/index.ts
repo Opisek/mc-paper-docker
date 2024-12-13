@@ -1,5 +1,4 @@
 import { exit } from "process";
-import { Server } from "minecraft-protocol";
 import { ChildProcessWithoutNullStreams } from "child_process";
 
 import acceptEula from "./modules/eula.js";
@@ -7,13 +6,13 @@ import watchServer from "./modules/watcher.js";
 import { getEnvironmental } from "./modules/config.js";
 import { createDirectories } from "./modules/paths.js";
 import { StartupError, runServer } from "./modules/server.js";
-import { handleMockServer, runMockServer } from "./modules/mock.js";
+import { handleMockServer, MockServer, runMockServer } from "./modules/mock.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
 import { Environmental } from "./typings/config.js";
 
 let serverInstance: ChildProcessWithoutNullStreams;
-let mockInstance: Server;
+let mockInstance: MockServer;
 
 async function main(environmental: Environmental) {
   const [ serverBinaries, serverVersion ] = await installServer();
