@@ -20,7 +20,7 @@ export async function runMockServer(version: string) {
     favicon: encodeIcon(join(minecraft, "server-icon.png")),
     host: serverProperties.serverIp,
     motd: serverProperties.motd,
-    "online-mode": false, //serverProperties.onlineMode,
+    "online-mode": serverProperties.onlineMode,
     port: serverProperties.serverPort,
     maxPlayers: serverProperties.maxPlayers,
     version: version,
