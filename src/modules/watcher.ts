@@ -34,7 +34,7 @@ export default async function watchServer(
           const playerCountMatch = message.toString().match(playerCountRegex);
           if (!playerCountMatch) return;
           serverInstance.stdout.removeListener("data", callback);
-          resolve(Number.parseInt(playerCountMatch[1]));
+          resolve(Number.parseInt(playerCountMatch[2]));
         });
       });
       serverInstance.stdin.write("list\n");
