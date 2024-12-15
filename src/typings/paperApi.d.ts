@@ -1,6 +1,7 @@
 export type VersionsResponse = {
   versions: string[]
 }
+
 export type BuildsResponse = {
   builds: {
     build: number,
