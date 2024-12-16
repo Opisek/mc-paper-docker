@@ -1,6 +1,4 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
-import { NewPingResult, OldPingResult } from "minecraft-protocol";
-import * as minecraftProtocol from "minecraft-protocol"; // https://github.com/PrismarineJS/node-minecraft-protocol/issues/1253
 
 import { getServerProperties } from "./config.js";
 
@@ -42,14 +40,15 @@ export default async function watchServer(
     };
 
     const queryPlayerCountByPing = function () {
-      minecraftProtocol.default.ping(pingOptions, (error, result) => {
-        if (error)
-          queryPlayerCountByConsole();
-        else if ((result as NewPingResult).players)
-          updateOnline((result as NewPingResult).players.online);
-        else
-          updateOnline((result as OldPingResult).playerCount);
-      }); 
+      queryPlayerCountByConsole();
+      //minecraftProtocol.default.ping(pingOptions, (error, result) => {
+      //  if (error)
+      //    queryPlayerCountByConsole();
+      //  else if ((result as NewPingResult).players)
+      //    updateOnline((result as NewPingResult).players.online);
+      //  else
+      //    updateOnline((result as OldPingResult).playerCount);
+      //}); 
     };
 
     const interval = setInterval(
