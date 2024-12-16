@@ -4,14 +4,14 @@ services:
     container_name: minecraft
     image: opisek/mc-paper-docker:latest
     volumes:
-      - /srv/minecraft:/app/minecraft # change /srv/minecraft to the directory you want to store minecraft files in
-      - minecraft-data:/app/data
-    network_mode: host
+      - ~/minecraft:/app/minecraft # change /srv/minecraft to the directory you want to store minecraft files in
+    ports: 
+      - 25565:25565
     environment:
-      - EULA=false      # change this to true if you agree to minecraft eula https://www.minecraft.net/en-us/eula
+      - EULA=true      # change this to true if you agree to minecraft eula https://www.minecraft.net/en-us/eula
       - VERSION=latest  # minecraft version or "latest"
-      - CHANNEL=default # change this to experimental for experimental paper builds
-      - GRACE=180       # amount of time in seconds of nobody being online before stopping the server
+      - CHANNEL=experimental # change this to experimental for experimental paper builds
+      - GRACE=10       # amount of time in seconds of nobody being online before stopping the server
       - XMS=8G          # minimum amount of ram to allocate to the server
       - XMX=8G          # maximum amount of ram to allocate to the server
       - UID=9999        # minecraft files user id

@@ -10,6 +10,7 @@ import { handleMockServer, MockServer, runMockServer } from "./modules/mock.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
 import { Environmental } from "./typings/config.js";
+import { pingServer } from "./modules/ping.js";
 
 let serverInstance: ChildProcessWithoutNullStreams;
 let mockInstance: MockServer;
@@ -55,12 +56,15 @@ async function shutdown() {
   exit(0);
 }
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+// TODO: restore after testing is complete
+pingServer("smp.opisek.net", 25565).then(console.log).catch(console.error);
 
-(async () => {
-  const environmental = getEnvironmental();
-  createDirectories();
-  await acceptEula(environmental.eula);
-  while (true) await main(environmental);
-})();
+//process.on("SIGTERM", shutdown);
+//process.on("SIGINT", shutdown);
+//
+//(async () => {
+//  const environmental = getEnvironmental();
+//  createDirectories();
+//  await acceptEula(environmental.eula);
+//  while (true) await main(environmental);
+//})();
