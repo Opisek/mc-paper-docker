@@ -3,6 +3,7 @@ import { ChildProcessWithoutNullStreams } from "child_process";
 import { getServerProperties } from "./config.js";
 
 import { Environmental } from "../typings/config.js";
+import { pingServer } from "./ping.js";
 
 const playerCountRegex = /.*(^|\n)\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
@@ -40,15 +41,11 @@ export default async function watchServer(
     };
 
     const queryPlayerCountByPing = function () {
-      queryPlayerCountByConsole();
-      //minecraftProtocol.default.ping(pingOptions, (error, result) => {
-      //  if (error)
-      //    queryPlayerCountByConsole();
-      //  else if ((result as NewPingResult).players)
-      //    updateOnline((result as NewPingResult).players.online);
-      //  else
-      //    updateOnline((result as OldPingResult).playerCount);
-      //}); 
+      pingServer(pingOptions.host, serverProperties.serverPort).then((response) => {
+        updateOnline(response.players.online);
+      }).catch(() => {
+        queryPlayerCountByConsole();
+      });
     };
 
     const interval = setInterval(
