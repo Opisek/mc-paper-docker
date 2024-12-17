@@ -1,7 +1,8 @@
 import net from "net";
 import { parseStatusResponse, serializeHandshake, serializeStatusRequest } from "./protocol.js";
+import { StatusResponse } from "src/typings/protocol.js";
 
-export const pingServer = async (address: string, port: number): Promise<any> => {
+export const pingServer = async (address: string, port: number): Promise<StatusResponse> => {
   const socket = net.createConnection(port, address);
 
   await new Promise((resolve) => {
