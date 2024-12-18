@@ -4,17 +4,16 @@ import { getServerProperties } from "./config.js";
 
 import { Environmental } from "../typings/config.js";
 import { pingServer } from "./ping.js";
+import { StatusResponse } from "src/typings/protocol.js";
 
 const playerCountRegex = /.*(^|\n)\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
 export default async function watchServer(
   environmental: Environmental,
   serverInstance: ChildProcessWithoutNullStreams
-): Promise<void> {
+): Promise<StatusResponse> {
   const serverProperties = await getServerProperties();
-  const pingOptions = {
-    host: serverProperties.serverIp === "" ? "127.0.0.1" : serverProperties.serverIp,
-  };
+  let cachedStatusResponse: StatusResponse;
 
   return new Promise((resolve) => {
     let lastOnline = Date.now();
@@ -41,7 +40,12 @@ export default async function watchServer(
     };
 
     const queryPlayerCountByPing = function () {
-      pingServer(pingOptions.host, serverProperties.serverPort).then((response) => {
+      pingServer(
+        serverProperties.serverIp === "" ? "127.0.0.1" : serverProperties.serverIp,
+        serverProperties.serverPort
+      ).then((response) => {
+        // Save the latest ping response (preferably with 0 players online) for replay later
+        if (!cachedStatusResponse || response.players.online == 0) cachedStatusResponse = response;
         updateOnline(response.players.online);
       }).catch(() => {
         queryPlayerCountByConsole();
@@ -57,7 +61,7 @@ export default async function watchServer(
     serverInstance.on("close", () => {
       clearInterval(interval);
       process.stdin.removeAllListeners();
-      resolve();
+      resolve(cachedStatusResponse);
     });
   });
 }
