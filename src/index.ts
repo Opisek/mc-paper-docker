@@ -34,12 +34,12 @@ async function main(environmental: Environmental) {
     }
   }
 
-  await watchServer(environmental, serverInstance);
+  const cachedStatusResponse = await watchServer(environmental, serverInstance);
   serverInstance = null;
   console.log("The server has closed.");
 
   console.log("Starting mock server");
-  mockInstance = await runMockServer(serverVersion);
+  mockInstance = await runMockServer(serverVersion, cachedStatusResponse);
   await handleMockServer(mockInstance);
   mockInstance = null;
   console.log("The mock server has closed.");

@@ -5,7 +5,8 @@ import net from "net";
 
 import { minecraft } from "./paths.js";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
-import { OperatorEntry, PlayerBanEntry, WhitelistEntry } from "../typings/config.js";
+import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
+import { StatusResponse } from "src/typings/protocol.js";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";
@@ -13,41 +14,32 @@ function encodeIcon(path: string): string {
 }
 
 export class MockServer {
-  serverIp: string;
-  serverPort: number;
-  motd: string;
-  favicon: string;
-  maxPlayers: number;
+  serverProperties: ServerProperties;
+
   version: string;
-  whitelistEnabled: boolean;
+
   whitelist: Map<UUID, WhitelistEntry>;
   operators: Map<UUID, OperatorEntry>;
   playerBans: Map<UUID, PlayerBanEntry>;
 
+  cachedStatusResponse: StatusResponse;
+
   socket: net.Server;
 
   constructor(
-    serverIp: string,
-    serverPort: number,
-    motd: string,
-    favicon: string,
-    maxPlayers: number,
+    serverProperties: ServerProperties,
     version: string,
-    whitelistEnabled: boolean,
     whitelist: Map<UUID, WhitelistEntry>,
     operators: Map<UUID, OperatorEntry>,
     playerBans: Map<UUID, PlayerBanEntry>,
+    cachedStatusResponse: StatusResponse
   ) {
-    this.serverIp = serverIp;
-    this.serverPort = serverPort;
-    this.motd = motd;
-    this.favicon = favicon;
-    this.maxPlayers = maxPlayers;
+    this.serverProperties = serverProperties;
     this.version = version;
-    this.whitelistEnabled = whitelistEnabled;
     this.whitelist = whitelist;
     this.operators = operators;
     this.playerBans = playerBans;
+    this.cachedStatusResponse = cachedStatusResponse;
   }
 
   start() {
@@ -61,7 +53,7 @@ export class MockServer {
       this.close();
     });
 
-    this.socket.listen(this.serverPort, this.serverIp);
+    this.socket.listen(this.serverProperties.serverPort, this.serverProperties.serverIp);
   }
 
   // TODO: add ip bans too
@@ -109,20 +101,16 @@ export class MockServer {
   }
 }
 
-export async function runMockServer(version: string) {
+export async function runMockServer(version: string, cachedStatusResponse: StatusResponse) {
   const serverProperties = await getServerProperties();
 
   const mockServer = new MockServer(
-    serverProperties.serverIp,
-    serverProperties.serverPort,
-    serverProperties.motd,
-    encodeIcon(join(minecraft, "server-icon.png")),
-    serverProperties.maxPlayers,
+    serverProperties,
     version,
-    serverProperties.whitelist,
     await getWhitelist(),
     await getOperators(),
     await getPlayerBans(),
+    cachedStatusResponse
   );
 
   mockServer.start();
