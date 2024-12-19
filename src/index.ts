@@ -56,15 +56,12 @@ async function shutdown() {
   exit(0);
 }
 
-// TODO: restore after testing is complete
-pingServer("smp.opisek.net", 25565).then(console.log).catch(console.error);
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
-//process.on("SIGTERM", shutdown);
-//process.on("SIGINT", shutdown);
-//
-//(async () => {
-//  const environmental = getEnvironmental();
-//  createDirectories();
-//  await acceptEula(environmental.eula);
-//  while (true) await main(environmental);
-//})();
+(async () => {
+  const environmental = getEnvironmental();
+  createDirectories();
+  await acceptEula(environmental.eula);
+  while (true) await main(environmental);
+})();

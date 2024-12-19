@@ -45,7 +45,7 @@ export class MockServer {
   start() {
     this.socket = net.createServer();
 
-    this.socket.on("connection", this.handleConnection);
+    this.socket.on("connection", this.handleConnection.bind(this));
 
     // allow the operator to start the real server from the console
     process.stdin.on("data", (message) => {
@@ -58,6 +58,11 @@ export class MockServer {
 
   // TODO: add ip bans too
   handleConnection(socket: net.Socket) {
+    console.log("Player connected to mock server.");
+    socket.on("data", (data) => {
+      console.log(data);
+    });
+    socket.write(this.cachedStatusResponse.raw);
     // TODO: rewrite from scratch
 
     //mockServer.on("login", (client: Client) => {

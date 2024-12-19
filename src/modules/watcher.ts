@@ -19,6 +19,7 @@ export default async function watchServer(
     let lastOnline = Date.now();
 
     const updateOnline = function (playerCount: number) {
+      console.log(playerCount, (Date.now() - lastOnline) / 1000, environmental.gracePeriod); // TODO: remove after testing
       if (playerCount != 0) lastOnline = Date.now();
       else if ((Date.now() - lastOnline) / 1000 >= environmental.gracePeriod) {
         console.log("Shutting the server down due to inactivity.");
@@ -41,7 +42,7 @@ export default async function watchServer(
 
     const queryPlayerCountByPing = function () {
       pingServer(
-        serverProperties.serverIp === "" ? "127.0.0.1" : serverProperties.serverIp,
+        serverProperties.serverIp || "127.0.0.1",
         serverProperties.serverPort
       ).then((response) => {
         // Save the latest ping response (preferably with 0 players online) for replay later
