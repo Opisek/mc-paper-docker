@@ -5,7 +5,7 @@ import net from "net";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "src/typings/protocol.js";
-import { parseHandshake, parseLoginStart, parsePacketHeader, serializePongResponse } from "./protocol.js";
+import { parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";
@@ -63,10 +63,12 @@ export class MockServer {
 
     const client = new ClientConnection(this, socket);
     this.clients.set(socket, client);
-    await client.handleClient();
+    const startRealServer = await client.handleClient();
 
     console.log("Player disconnected from the mock server.");
     this.clients.delete(socket);
+
+    if (startRealServer) this.close();
   }
 
   waitForClose() {
@@ -77,6 +79,10 @@ export class MockServer {
   }
 
   close() {
+    for (const client of this.clients.values()) {
+      client.success = false;
+      client.socket.end();
+    }
     this.socket.close();
     process.stdin.removeAllListeners();
     this.socket = null;
@@ -94,6 +100,8 @@ class ClientConnection {
 
   mutex: boolean;
 
+  success: boolean;
+
   constructor(server: MockServer, socket: net.Socket) {
     this.server = server;
     this.socket = socket;
@@ -101,6 +109,7 @@ class ClientConnection {
     this.bufferedData = Buffer.alloc(0);
     this.fullPackets = [];
     this.mutex = false;
+    this.success = false;
   }
 
   handleClient() {
@@ -134,8 +143,8 @@ class ClientConnection {
       this.handleData();
     });
 
-    return new Promise<void>((resolve, reject) => {
-      this.socket.on("close", resolve);
+    return new Promise<boolean>((resolve, reject) => {
+      this.socket.on("close", () => resolve(this.success));
       this.socket.on("error", reject);
     });
   }
@@ -148,9 +157,10 @@ class ClientConnection {
     const response = this.createResponse(id, payload);
 
     await new Promise<void>((resolve) => {
-      if (response.length == 0) resolve();
-      else this.socket.write(response, () => resolve());
+      if (response.response.length == 0) resolve();
+      else this.socket.write(response.response, () => resolve());
     })
+    if (response.disconnect) this.socket.end();
     // TODO: rewrite from scratch
 
     //mockServer.on("login", (client: Client) => {
@@ -183,24 +193,24 @@ class ClientConnection {
     else this.mutex = false;
   }
 
-  createResponse(id: number, payload: Buffer): Buffer {
+  createResponse(id: number, payload: Buffer): { response: Buffer, disconnect: boolean } {
     switch (this.state) {
       // Initial state
       case 0:
         const { nextState } = parseHandshake(payload);
         this.state = nextState;
-        return Buffer.alloc(0);
+        return { response: Buffer.alloc(0), disconnect: false };
       
       // Status state
       case 1:
         switch (id) {
           // Status response
           case 0:
-            return this.server.cachedStatusResponse.raw;
+            return { response: this.server.cachedStatusResponse.raw, disconnect: false };
 
           // Pong response
           case 1:
-            return serializePongResponse(payload);
+            return { response: serializePongResponse(payload), disconnect: false };
         }
         break;
 
@@ -210,14 +220,21 @@ class ClientConnection {
           case 0:
             const { name, uuid } = parseLoginStart(payload);
             console.log(name, uuid);
+            this.success = true;
+            return {
+              response: serializeLoginDisconnect("The server will start shortly. Please join again in a few seconds."),
+              disconnect: false
+            };
         }
-        return Buffer.alloc(0);
+      break;
 
       // Transfer state
       case 3:
         console.error("Unhandled state: 3");
-        return Buffer.alloc(0);
+      break;
     }
+
+    return { response: Buffer.alloc(0), disconnect: false };
   }
 }
 

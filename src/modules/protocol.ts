@@ -8,6 +8,11 @@ export const readLen = (data: Buffer): { length: number, data: Buffer } => {
   return { length, data };
 }
 
+export const encodeWithLen = (data: Buffer): Buffer => {
+  const length = Buffer.from(varint.encode(data.length));
+  return Buffer.concat([length, data]);
+}
+
 export const parsePacketHeader = (data: Buffer): { length: number, id: number, payload: Buffer } => {
   const { length, data: rest } = readLen(data);
   return { length, id: rest[0], payload: rest.subarray(1) };
@@ -40,8 +45,7 @@ export const parseHandshake = (data: Buffer): { version: number, address: string
 export const serializeHandshake = (protocolVersion: number, serverAddress: string, serverPort: number, nextState: number): Buffer => {
   const protocolVersionBuffer = Buffer.from(varint.encode(protocolVersion));
 
-  const serverAddressBuffer = Buffer.from(serverAddress);
-  const serverAddressSize = Buffer.from(varint.encode(serverAddress.length));
+  const serverAddressBuffer = encodeWithLen(Buffer.from(serverAddress));
 
   const serverPortBuffer = Buffer.alloc(2);
   serverPortBuffer.writeUInt16BE(serverPort);
@@ -50,7 +54,6 @@ export const serializeHandshake = (protocolVersion: number, serverAddress: strin
 
   return serializePacket(0x00, Buffer.concat([
     protocolVersionBuffer,
-    serverAddressSize,
     serverAddressBuffer,
     serverPortBuffer,
     nextStateBuffer
@@ -82,7 +85,7 @@ export const parseLoginStart = (data: Buffer): { name: string, uuid: UUIDTypes }
 }
 
 export const serializeLoginDisconnect = (reason: string): Buffer => {
-  const reasonBuffer = Buffer.from(reason);
-  const reasonSize = Buffer.from(varint.encode(reasonBuffer.length));
-  return serializePacket(0x00, Buffer.concat([reasonSize, reasonBuffer]));
+  const reasonJson = { text: reason };
+  const buffer = encodeWithLen(Buffer.from(JSON.stringify(reasonJson)));
+  return serializePacket(0x00, buffer);
 }
