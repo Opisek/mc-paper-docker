@@ -4,7 +4,7 @@ import net from "net";
 
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
-import { StatusResponse } from "src/typings/protocol.js";
+import { StatusResponse } from "../typings/protocol.js";
 import { offlineUUID, parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
 import * as uuidlib from "uuid";
 
