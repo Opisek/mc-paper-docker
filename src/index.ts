@@ -1,19 +1,18 @@
-import { exit } from "process";
-import { Server } from "minecraft-protocol";
 import { ChildProcessWithoutNullStreams } from "child_process";
+import { exit } from "process";
 
 import acceptEula from "./modules/eula.js";
 import watchServer from "./modules/watcher.js";
-import { getEnvironmental } from "./modules/config.js";
-import { createDirectories } from "./modules/paths.js";
 import { StartupError, runServer } from "./modules/server.js";
-import { handleMockServer, runMockServer } from "./modules/mock.js";
+import { createDirectories } from "./modules/paths.js";
+import { getEnvironmental } from "./modules/config.js";
+import { handleMockServer, MockServer, runMockServer } from "./modules/mock.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
 import { Environmental } from "./typings/config.js";
 
 let serverInstance: ChildProcessWithoutNullStreams;
-let mockInstance: Server;
+let mockInstance: MockServer;
 
 async function main(environmental: Environmental) {
   const [ serverBinaries, serverVersion ] = await installServer();
@@ -34,12 +33,12 @@ async function main(environmental: Environmental) {
     }
   }
 
-  await watchServer(environmental, serverInstance);
+  const cachedStatusResponse = await watchServer(environmental, serverInstance);
   serverInstance = null;
   console.log("The server has closed.");
 
   console.log("Starting mock server");
-  mockInstance = await runMockServer(serverVersion);
+  mockInstance = await runMockServer(serverVersion, cachedStatusResponse);
   await handleMockServer(mockInstance);
   mockInstance = null;
   console.log("The mock server has closed.");

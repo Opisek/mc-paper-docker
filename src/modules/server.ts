@@ -1,10 +1,10 @@
-import { join } from "path";
 import { ChildProcessWithoutNullStreams, exec } from "child_process";
+import { join } from "path";
+import { writeFileSync } from "fs";
 
 import { minecraft } from "./paths.js";
 
 import { Environmental } from "../typings/config.js";
-import { writeFileSync } from "fs";
 
 export enum StartupError {
   Corrupted,

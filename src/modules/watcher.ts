@@ -1,21 +1,19 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
-import { NewPingResult, OldPingResult } from "minecraft-protocol";
-import * as minecraftProtocol from "minecraft-protocol"; // https://github.com/PrismarineJS/node-minecraft-protocol/issues/1253
 
 import { getServerProperties } from "./config.js";
+import { pingServer } from "./ping.js";
 
 import { Environmental } from "../typings/config.js";
+import { StatusResponse } from "../typings/protocol.js";
 
 const playerCountRegex = /.*(^|\n)\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 
 export default async function watchServer(
   environmental: Environmental,
   serverInstance: ChildProcessWithoutNullStreams
-): Promise<void> {
+): Promise<StatusResponse> {
   const serverProperties = await getServerProperties();
-  const pingOptions = {
-    host: serverProperties.serverIp === "" ? "127.0.0.1" : serverProperties.serverIp,
-  };
+  let cachedStatusResponse: StatusResponse;
 
   return new Promise((resolve) => {
     let lastOnline = Date.now();
@@ -42,14 +40,16 @@ export default async function watchServer(
     };
 
     const queryPlayerCountByPing = function () {
-      minecraftProtocol.default.ping(pingOptions, (error, result) => {
-        if (error)
-          queryPlayerCountByConsole();
-        else if ((result as NewPingResult).players)
-          updateOnline((result as NewPingResult).players.online);
-        else
-          updateOnline((result as OldPingResult).playerCount);
-      }); 
+      pingServer(
+        serverProperties.serverIp || "127.0.0.1",
+        serverProperties.serverPort
+      ).then((response) => {
+        // Save the latest ping response (preferably with 0 players online) for replay later
+        if (!cachedStatusResponse || response.players.online == 0) cachedStatusResponse = response;
+        updateOnline(response.players.online);
+      }).catch(() => {
+        queryPlayerCountByConsole();
+      });
     };
 
     const interval = setInterval(
@@ -61,7 +61,7 @@ export default async function watchServer(
     serverInstance.on("close", () => {
       clearInterval(interval);
       process.stdin.removeAllListeners();
-      resolve();
+      resolve(cachedStatusResponse);
     });
   });
 }
