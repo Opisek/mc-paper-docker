@@ -65,7 +65,7 @@ The purpose of this project is to provide a simple way to run a minecraft with t
   `VERSION` | The minecraft version that should be installed, e.g. `1.20.1` or `latest` for the most current version
   `CHANNEL` | The channel for PaperMC builds to be used: `default` for normal builds and `experimental` for potentally unstable builds
   `GRACE` | The amount to time to wait before putting the server to sleep when nobody is online
-  `XMX` | The minimum amount of RAM to allocate to the minecraft server
+  `XMS` | The minimum amount of RAM to allocate to the minecraft server
   `XMX` | The maximum amount of RAM to allocate to the minecraft server
   `UID` | The user id to use for the server files
   `GID` | The group id to use for the server files
