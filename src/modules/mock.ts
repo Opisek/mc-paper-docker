@@ -197,6 +197,12 @@ class ClientConnection {
       case 2:
         switch (id) {
           case 0:
+            // IMPORTANT:
+            // User authentication is NOT a responsibility of the mock server.
+            // A manipulated client will be able to start the real server by faking their UUID.
+            // Such a client will be rejected by the the real server later on.
+            // This is a known limitation and there are no plans to address it.
+
             let { name, uuid: rawUuid } = parseLoginStart(payload);
             if (!this.server.serverProperties.onlineMode) {
             }
