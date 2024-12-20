@@ -5,7 +5,7 @@ import net from "net";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "src/typings/protocol.js";
-import { parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
+import { offlineUUID, parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
 import * as uuidlib from "uuid";
 
 function encodeIcon(path: string): string {
@@ -203,13 +203,12 @@ class ClientConnection {
             // Such a client will be rejected by the the real server later on.
             // This is a known limitation and there are no plans to address it.
 
-            let { name, uuid: rawUuid } = parseLoginStart(payload);
-            if (!this.server.serverProperties.onlineMode) {
-            }
-            const uuid = uuidlib.stringify(rawUuid as Uint8Array) as UUID;
-            console.log(name, uuid);
-
-            console.log(this.server.whitelist);
+            const { name, uuid: rawUuid } = parseLoginStart(payload);
+            const uuid = uuidlib.stringify((
+              this.server.serverProperties.onlineMode ?
+              rawUuid :
+              offlineUUID(name)
+            ) as Uint8Array) as UUID;
 
             // Check whitelist
             if (

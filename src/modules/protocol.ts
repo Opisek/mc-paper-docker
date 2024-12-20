@@ -1,6 +1,16 @@
 import varint from "varint";
 import { StatusResponse } from "../typings/protocol.js";
 import { UUIDTypes } from "uuid";
+import crypto from "crypto";
+
+export const offlineUUID = (name: string): Buffer => {
+  const hash = crypto.createHash('md5')
+  hash.update(`OfflinePlayer:${name}`, 'utf8')
+  const buffer = hash.digest()
+  buffer[6] = (buffer[6] & 0x0f) | 0x30
+  buffer[8] = (buffer[8] & 0x3f) | 0x80
+  return buffer
+}
 
 export const readLen = (data: Buffer): { length: number, data: Buffer } => {
   const length = varint.decode(data);
