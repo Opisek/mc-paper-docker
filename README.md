@@ -101,12 +101,13 @@ The docker container runs a Node.js script that
 
   If someone is ip-banned, they are still able to join the mock server, and by that, start the real server. They still cannot join the real server, only trigger the startup.
 
+- The mock server doesn't verify the user's authenticity:
+
+  If a malicious client joins with a spoofed whitelisted user's UUID, the real server will be started. Again, they will not be able to join the actual real server once it's up.
+
 - The mock server doesn't respect the "enableStatus" property of `server.properties`.
 
   The status should not be displayed in the server selection menu if this property is set to
   true, however the mock server will always display the status.
-
-- In case the latest version only has experimantal builds, but the `default` channel has
-  been selected, then the installer will fail to download any binaries.
 
 - There might be a very small chance that the stdout buffers don't include the full line, which would cause the employed regexes to fail.
