@@ -1,16 +1,15 @@
-import { exit } from "process";
 import { ChildProcessWithoutNullStreams } from "child_process";
+import { exit } from "process";
 
 import acceptEula from "./modules/eula.js";
 import watchServer from "./modules/watcher.js";
-import { getEnvironmental } from "./modules/config.js";
-import { createDirectories } from "./modules/paths.js";
 import { StartupError, runServer } from "./modules/server.js";
+import { createDirectories } from "./modules/paths.js";
+import { getEnvironmental } from "./modules/config.js";
 import { handleMockServer, MockServer, runMockServer } from "./modules/mock.js";
 import { installServer, clearBinariesData } from "./modules/installer.js";
 
 import { Environmental } from "./typings/config.js";
-import { pingServer } from "./modules/ping.js";
 
 let serverInstance: ChildProcessWithoutNullStreams;
 let mockInstance: MockServer;

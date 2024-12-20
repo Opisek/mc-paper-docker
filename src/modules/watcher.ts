@@ -1,9 +1,10 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
 
-import { Environmental } from "../typings/config.js";
-import { StatusResponse } from "../typings/protocol.js";
 import { getServerProperties } from "./config.js";
 import { pingServer } from "./ping.js";
+
+import { Environmental } from "../typings/config.js";
+import { StatusResponse } from "../typings/protocol.js";
 
 const playerCountRegex = /.*(^|\n)\[[^\]]+\]: There are (\d+) of a max of \d+ players online:.+/;
 

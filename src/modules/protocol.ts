@@ -1,7 +1,8 @@
-import varint from "varint";
-import { StatusResponse } from "../typings/protocol.js";
-import { UUIDTypes } from "uuid";
 import crypto from "crypto";
+import varint from "varint";
+import { UUIDTypes } from "uuid";
+
+import { StatusResponse } from "../typings/protocol.js";
 
 export const offlineUUID = (name: string): Buffer => {
   const hash = crypto.createHash('md5')

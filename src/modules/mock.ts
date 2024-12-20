@@ -1,12 +1,13 @@
+import * as uuidlib from "uuid";
+import net from "net";
 import { UUID } from "crypto";
 import { existsSync, readFileSync } from "fs";
-import net from "net";
 
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
+import { offlineUUID, parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
+
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "../typings/protocol.js";
-import { offlineUUID, parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
-import * as uuidlib from "uuid";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";

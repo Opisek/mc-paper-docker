@@ -1,8 +1,8 @@
-import { join } from "path";
 import { UUID } from "crypto";
-import { createReadStream } from "fs";
-import { readFile } from "fs/promises";
 import { createInterface } from "readline";
+import { createReadStream } from "fs";
+import { join } from "path";
+import { readFile } from "fs/promises";
 
 import { minecraft } from "./paths.js";
 
