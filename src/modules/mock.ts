@@ -6,6 +6,7 @@ import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "src/typings/protocol.js";
 import { parseHandshake, parseLoginStart, parsePacketHeader, serializeLoginDisconnect, serializePongResponse } from "./protocol.js";
+import * as uuidlib from "uuid";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";
@@ -48,7 +49,7 @@ export class MockServer {
 
     this.socket.on("connection", this.handleConnection.bind(this));
 
-    // allow the operator to start the real server from the console
+    // Allow the operator to start the real server from the console
     process.stdin.on("data", (message) => {
       if (message.toString().trim() !== "start") return;
       this.close();
@@ -57,17 +58,16 @@ export class MockServer {
     this.socket.listen(this.serverProperties.serverPort, this.serverProperties.serverIp);
   }
 
-  // TODO: add ip bans too
   async handleConnection(socket: net.Socket) {
-    console.log("Player connected to mock server.");
-
+    // Create a new client connection
     const client = new ClientConnection(this, socket);
     this.clients.set(socket, client);
-    const startRealServer = await client.handleClient();
 
-    console.log("Player disconnected from the mock server.");
+    // Handle the client
+    const startRealServer = await client.handleClient();
     this.clients.delete(socket);
 
+    // Close the mock server on successful request
     if (startRealServer) this.close();
   }
 
@@ -152,43 +152,22 @@ class ClientConnection {
   async handleData() {
     if (this.socket.closed) return;
 
+    // Parse the packet header
     const { id, payload } = parsePacketHeader(this.fullPackets.shift());
 
+    // Change state and create a response
     const response = this.createResponse(id, payload);
 
+    // Send a response to the client
     await new Promise<void>((resolve) => {
       if (response.response.length == 0) resolve();
       else this.socket.write(response.response, () => resolve());
     })
+
+    // Close the connection if needed
     if (response.disconnect) this.socket.end();
-    // TODO: rewrite from scratch
 
-    //mockServer.on("login", (client: Client) => {
-    //  const clientUUID = client.uuid as UUID;
-
-    //  // check whitelist
-    //  if (serverProperties.whitelist && !whitelist.has(clientUUID) && !operators.has(clientUUID)) {
-    //    client.end("You are not whitelisted on this server!");
-    //    return;
-    //  }
-
-    //  // check blacklist
-    //  if (playerBans.has(clientUUID)) {
-    //    const ban = playerBans.get(clientUUID);
-    //    if (ban.expires === "forever" || Date.now() > new Date(ban.expires).getTime()) {
-    //      client.end(`You are banned from this server.\nReason: ${ban.reason}`);
-    //      return;
-    //    }
-    //  }
-
-    //  // TODO: check if there's a way we could handle ipBans as well
-
-    //  // kill the mock
-    //  console.log(`Player ${client.username} attempted to join.`);
-    //  client.end("The server will start shortly. Please join again in a few seconds.");
-    //  stopServer();
-    //});
-
+    // Parse next packet in the queue
     if (this.fullPackets.length != 0) this.handleData();
     else this.mutex = false;
   }
@@ -218,8 +197,38 @@ class ClientConnection {
       case 2:
         switch (id) {
           case 0:
-            const { name, uuid } = parseLoginStart(payload);
+            let { name, uuid: rawUuid } = parseLoginStart(payload);
+            if (!this.server.serverProperties.onlineMode) {
+            }
+            const uuid = uuidlib.stringify(rawUuid as Uint8Array) as UUID;
             console.log(name, uuid);
+
+            console.log(this.server.whitelist);
+
+            // Check whitelist
+            if (
+              this.server.serverProperties.whitelist &&
+              !this.server.whitelist.has(uuid) &&
+              !this.server.operators.has(uuid)
+            ) return {
+              response: serializeLoginDisconnect("You are not whitelisted on this server!"),
+              disconnect: false
+            };
+
+            // Check blacklist
+            if (this.server.playerBans.has(uuid)) {
+              const ban = this.server.playerBans.get(uuid);
+              if (ban.expires === "forever" || Date.now() > new Date(ban.expires).getTime()) {
+                return {
+                  response: serializeLoginDisconnect(`You are banned from this server.\nReason: ${ban.reason}`),
+                  disconnect: false
+                };
+              }
+            }
+
+            // TODO: Check IP bans
+
+            console.log(`Player ${name} attempted to join.`);
             this.success = true;
             return {
               response: serializeLoginDisconnect("The server will start shortly. Please join again in a few seconds."),
