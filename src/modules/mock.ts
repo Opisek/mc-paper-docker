@@ -5,7 +5,7 @@ import net from "net";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "src/typings/protocol.js";
-import { parseHandshake, parsePacketHeader, serializePongResponse } from "./protocol.js";
+import { parseHandshake, parseLoginStart, parsePacketHeader, serializePongResponse } from "./protocol.js";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";
@@ -105,17 +105,31 @@ class ClientConnection {
 
   handleClient() {
     this.socket.on("data", (data) => {
+      // Buffer the received data
       data = Buffer.concat([this.bufferedData, data]);
-      const { length } = parsePacketHeader(data);
-      if (data.length < length + 1) {
-        this.bufferedData = Buffer.concat([this.bufferedData, data]);
-        return;
-      }
-      this.bufferedData = data.subarray(length + 1);
-      data = data.subarray(0, length + 1);
-      this.fullPackets.push(data);
 
-      if (this.mutex) return;
+      let gotNewPacket = false;
+
+      // Split the data back into packets
+      while (true) {
+        if (data.length == 0) break;
+
+        // Break once an incomplete packet is found
+        const { length } = parsePacketHeader(data);
+        if (data.length < length + 1) {
+          this.bufferedData = Buffer.concat([this.bufferedData, data]);
+          break;
+        }
+
+        // Push a full packet into the queue and continue parsing
+        this.fullPackets.push(data.subarray(0, length + 1));
+        data = data.subarray(length + 1);
+
+        gotNewPacket = true;
+      }
+
+      // Handle the data once enough is received
+      if (!gotNewPacket || this.mutex) return;
       this.mutex = true;
       this.handleData();
     });
@@ -192,12 +206,16 @@ class ClientConnection {
 
       // Login state
       case 2:
-        console.log("login state");
+        switch (id) {
+          case 0:
+            const { name, uuid } = parseLoginStart(payload);
+            console.log(name, uuid);
+        }
         return Buffer.alloc(0);
 
       // Transfer state
       case 3:
-        console.log("transfer state");
+        console.error("Unhandled state: 3");
         return Buffer.alloc(0);
     }
   }
