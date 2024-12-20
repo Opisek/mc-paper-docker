@@ -1,5 +1,5 @@
 import net from "net";
-import { parseStatusResponse, serializeHandshake, serializeStatusRequest } from "./protocol.js";
+import { parsePacketHeader, parseStatusResponse, serializeHandshake, serializeStatusRequest } from "./protocol.js";
 import { StatusResponse } from "src/typings/protocol.js";
 
 export const pingServer = async (address: string, port: number): Promise<StatusResponse> => {
@@ -21,7 +21,8 @@ export const pingServer = async (address: string, port: number): Promise<StatusR
       allData = Buffer.concat([allData, data]);
 
       parseTimeout = setTimeout(async () => {
-        const response = await parseStatusResponse(allData);
+        const { payload } = parsePacketHeader(allData);
+        const response = parseStatusResponse(payload);
         response.raw = data;
         resolve(response);
         socket.destroy();

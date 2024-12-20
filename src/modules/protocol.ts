@@ -12,13 +12,38 @@ export const serializeStatusRequest = (): Buffer => {
   return Buffer.from([0x01, 0x00]);
 }
 
-export const parseStatusResponse = async (data: Buffer): Promise<StatusResponse> => {
-  const len = varint.decode(data);
-  data = data.subarray(varint.encodingLength(len) + 1); // skip length and packet id
+export const parsePacketHeader = (data: Buffer): { length: number, id: number, payload: Buffer } => {
+  const length = varint.decode(data);
+  data = data.subarray(varint.encodingLength(length)); // skip length field
+  return { length, id: data[0], payload: data.subarray(1) };
+}
+
+export const parseStatusResponse = (data: Buffer): StatusResponse => {
   const strlen = varint.decode(data);
-  data = data.subarray(varint.encodingLength(strlen)); // skip string length
-  const json = JSON.parse(data.toString());
+  const str = data.subarray(varint.encodingLength(strlen)); // skip string length
+  const json = JSON.parse(str.toString());
   return json;
+}
+
+export const serializePongResponse = (pingData: Buffer): Buffer => {
+  return serializePacket(0x01, pingData);
+}
+
+export const parseHandshake = (data: Buffer): { version: number, address: string, port: number, nextState: number } => {
+  const version = varint.decode(data);
+  data = data.subarray(varint.encodingLength(version));
+
+  const addressLength = varint.decode(data);
+  data = data.subarray(varint.encodingLength(addressLength));
+  const address = data.subarray(0, addressLength).toString();
+  data = data.subarray(addressLength);
+
+  const port = data.readUInt16BE();
+  data = data.subarray(2);
+
+  const nextState = varint.decode(data);
+
+  return { version, address, port, nextState };
 }
 
 export const serializeHandshake = (protocolVersion: number, serverAddress: string, serverPort: number, nextState: number): Buffer => {

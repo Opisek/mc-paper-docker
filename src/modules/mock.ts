@@ -1,12 +1,11 @@
-import { join } from "path";
 import { UUID } from "crypto";
 import { existsSync, readFileSync } from "fs";
 import net from "net";
 
-import { minecraft } from "./paths.js";
 import { getOperators, getPlayerBans, getServerProperties, getWhitelist } from "./config.js";
 import { OperatorEntry, PlayerBanEntry, ServerProperties, WhitelistEntry } from "../typings/config.js";
 import { StatusResponse } from "src/typings/protocol.js";
+import { parseHandshake, parsePacketHeader, serializePongResponse } from "./protocol.js";
 
 function encodeIcon(path: string): string {
   if (!existsSync(path)) return "";
@@ -25,6 +24,8 @@ export class MockServer {
   cachedStatusResponse: StatusResponse;
 
   socket: net.Server;
+
+  clients: Map<net.Socket, ClientConnection> = new Map();
 
   constructor(
     serverProperties: ServerProperties,
@@ -57,12 +58,85 @@ export class MockServer {
   }
 
   // TODO: add ip bans too
-  handleConnection(socket: net.Socket) {
+  async handleConnection(socket: net.Socket) {
     console.log("Player connected to mock server.");
-    socket.on("data", (data) => {
-      console.log(data);
+
+    const client = new ClientConnection(this, socket);
+    this.clients.set(socket, client);
+    await client.handleClient();
+
+    console.log("Player disconnected from the mock server.");
+    this.clients.delete(socket);
+  }
+
+  waitForClose() {
+    return new Promise<void>((resolve) => {
+      if (!this.socket) resolve();
+      else this.socket.on("close", resolve);
     });
-    socket.write(this.cachedStatusResponse.raw);
+  }
+
+  close() {
+    this.socket.close();
+    process.stdin.removeAllListeners();
+    this.socket = null;
+  }
+}
+
+class ClientConnection {
+  server: MockServer;
+  socket: net.Socket;
+
+  state: number;
+
+  bufferedData: Buffer;
+  fullPackets: Buffer[];
+
+  mutex: boolean;
+
+  constructor(server: MockServer, socket: net.Socket) {
+    this.server = server;
+    this.socket = socket;
+    this.state = 0;
+    this.bufferedData = Buffer.alloc(0);
+    this.fullPackets = [];
+    this.mutex = false;
+  }
+
+  handleClient() {
+    this.socket.on("data", (data) => {
+      data = Buffer.concat([this.bufferedData, data]);
+      const { length } = parsePacketHeader(data);
+      if (data.length < length + 1) {
+        this.bufferedData = Buffer.concat([this.bufferedData, data]);
+        return;
+      }
+      this.bufferedData = data.subarray(length + 1);
+      data = data.subarray(0, length + 1);
+      this.fullPackets.push(data);
+
+      if (this.mutex) return;
+      this.mutex = true;
+      this.handleData();
+    });
+
+    return new Promise<void>((resolve, reject) => {
+      this.socket.on("close", resolve);
+      this.socket.on("error", reject);
+    });
+  }
+
+  async handleData() {
+    if (this.socket.closed) return;
+
+    const { id, payload } = parsePacketHeader(this.fullPackets.shift());
+
+    const response = this.createResponse(id, payload);
+
+    await new Promise<void>((resolve) => {
+      if (response.length == 0) resolve();
+      else this.socket.write(response, () => resolve());
+    })
     // TODO: rewrite from scratch
 
     //mockServer.on("login", (client: Client) => {
@@ -90,21 +164,45 @@ export class MockServer {
     //  client.end("The server will start shortly. Please join again in a few seconds.");
     //  stopServer();
     //});
+
+    if (this.fullPackets.length != 0) this.handleData();
+    else this.mutex = false;
   }
 
-  waitForClose() {
-    return new Promise<void>((resolve) => {
-      if (!this.socket) resolve();
-      else this.socket.on("close", resolve);
-    });
-  }
+  createResponse(id: number, payload: Buffer): Buffer {
+    switch (this.state) {
+      // Initial state
+      case 0:
+        const { nextState } = parseHandshake(payload);
+        this.state = nextState;
+        return Buffer.alloc(0);
+      
+      // Status state
+      case 1:
+        switch (id) {
+          // Status response
+          case 0:
+            return this.server.cachedStatusResponse.raw;
 
-  close() {
-    this.socket.close();
-    process.stdin.removeAllListeners();
-    this.socket = null;
+          // Pong response
+          case 1:
+            return serializePongResponse(payload);
+        }
+        break;
+
+      // Login state
+      case 2:
+        console.log("login state");
+        return Buffer.alloc(0);
+
+      // Transfer state
+      case 3:
+        console.log("transfer state");
+        return Buffer.alloc(0);
+    }
   }
 }
+
 
 export async function runMockServer(version: string, cachedStatusResponse: StatusResponse) {
   const serverProperties = await getServerProperties();

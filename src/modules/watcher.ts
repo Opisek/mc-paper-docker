@@ -19,7 +19,6 @@ export default async function watchServer(
     let lastOnline = Date.now();
 
     const updateOnline = function (playerCount: number) {
-      console.log(playerCount, (Date.now() - lastOnline) / 1000, environmental.gracePeriod); // TODO: remove after testing
       if (playerCount != 0) lastOnline = Date.now();
       else if ((Date.now() - lastOnline) / 1000 >= environmental.gracePeriod) {
         console.log("Shutting the server down due to inactivity.");
